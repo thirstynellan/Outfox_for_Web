@@ -103,6 +103,7 @@ class Chip {
 			c.fillStyle = "#cac006";
 			c.beginPath();
 			c.arc(cx, cy, w*0.6, 0, 2*Math.PI, false);
+            c.closePath();
 			c.fill();
 		}
 
@@ -115,17 +116,19 @@ class Chip {
 		c.beginPath();
 		c.arc(cx, cy, w*0.45, 0, 2*Math.PI, false);
 		c.fill();
+        c.closePath();
 		c.strokeStyle = 'black';
 		c.beginPath();
 		c.arc(cx, cy, w*0.45, 0, 2*Math.PI, false);
+        c.closePath();
 		c.stroke();
 		if (this.power) {
 			//draw a little gold dot in the center
 			c.fillStyle = "#cac006";
 			c.beginPath();
 			c.arc(cx, cy, w*0.2, 0, 2*Math.PI, false);
+            c.closePath();
 			c.fill();
-
 		}
 	}
 

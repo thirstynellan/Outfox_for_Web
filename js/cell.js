@@ -44,6 +44,7 @@ class Cell {
 		var cy = this.top + (this.bottom-this.top)/2;
 		c.beginPath();
 		c.arc(cx, cy, w*0.2, 0, 2*Math.PI, false);
+        c.closePath();
 		c.fill();
 	}
 

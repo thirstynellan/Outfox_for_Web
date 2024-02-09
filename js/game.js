@@ -8,24 +8,39 @@ function index(x,y) {
 	return 10*y+x;
 }
 
-
-
 // Create the canvas
-var canvas = document.createElement("canvas");
+//var canvas = document.createElement("canvas");
+var canvas = document.getElementById("gameboard");
 var ctx = canvas.getContext("2d");
 var smaller = Math.min(window.innerWidth, window.innerHeight);
 var cellsize = smaller/10;
 var gameboardwidth = cellsize*10;
 var gameboardheight = cellsize*9;
-var currentPlayer = LIGHT_BROWN;
+var currentPlayer = (Math.random() < 0.5) ? LIGHT_BROWN : DARK_BROWN;
 var selected = null;
-canvas.width = cellsize*10;
+canvas.width = cellsize*12;
 canvas.height = cellsize*10;
-document.body.appendChild(canvas);
+var audio = new Audio('sneaky_snitch.ogg');
+audio.loop = true;
+var soundOn = false;
+var imagesLoaded = 0;
+var muteButton = new Image();
+muteButton.onload = function() {
+	imagesLoaded++;
+}
+muteButton.src = "mute.png";
+var unmuteButton = new Image();
+unmuteButton.onload = function() {
+	imagesLoaded++;
+}
+unmuteButton.src = "unmute.png";
+
+//document.body.appendChild(canvas);
 
 const grid = new Map();
 const chips = [];
 const legalMoves = [];
+const undoStack = [];
 
 addEventListener("click", function(e) {
 	onTouchEvent(e.pageX, e.pageY);
@@ -42,7 +57,7 @@ function reset() {
 	makeChips();
 };
 
-var swapPlayers = function() {
+function swapPlayers() {
 	if (currentPlayer == LIGHT_BROWN) {
 		currentPlayer = DARK_BROWN;
 	} else {
@@ -61,6 +76,21 @@ function update(modifier) {
 function onTouchEvent(x,y) {
 	var done = false;
 
+	if (x > gameboardwidth) {
+		if (y < cellsize) {
+			//alert("tapped volume button");
+			if (soundOn) {
+				soundOn = false;
+				audio.pause();
+			} else {
+				soundOn = true;
+				audio.play();
+			}
+		} else if (y < 2*cellsize) {
+			alert("undo!");
+		}
+	}
+
 	for (const cell of legalMoves) {
 		if (cell.contains(x,y)) {
 			selected.setGoal(cell);
@@ -70,7 +100,6 @@ function onTouchEvent(x,y) {
 		}
 	}
 	legalMoves.length=0;
-	//chips.forEach(chippy -> chippy.unselect());
 	for (const chippy of chips) {
 		chippy.unselect();
 	}
@@ -128,7 +157,7 @@ function render() {
 
 	//blank out background
 	ctx.beginPath();
-	ctx.rect(0,0,gameboardwidth+cellsize,gameboardheight+cellsize);
+	ctx.rect(0,0,canvas.width, canvas.height);
 	ctx.fillStyle = "white";
 	ctx.fill();
 
@@ -170,6 +199,15 @@ function render() {
 		cell.drawHighlight(ctx);
 	}
 
+	if (imagesLoaded > 1) {
+		ctx.lineWidth = cellsize * 0.03;
+		ctx.drawImage(soundOn ? unmuteButton : muteButton, gameboardwidth+10, 10);
+		ctx.beginPath();
+		ctx.roundRect(gameboardwidth+5, 5, cellsize-10, cellsize-10, 10);
+		ctx.closePath();
+		ctx.stroke();
+	}
+
 	/*for (var i=0; i<10; i++) {
 		for (var j=0; j<9; j++) {
 			grid.get(index(i,j)).debug(ctx);
@@ -181,14 +219,15 @@ function render() {
 	ctx.font = "24px Helvetica";
 	ctx.textAlign = "left";
 	ctx.textBaseline = "top";
-	//ctx.fillText("Outfox!", 10,gameboardheight+10);
 	if (currentPlayer == DARK_BROWN) {
-		ctx.fillText("Dark Brown's Turn", 10, gameboardheight+10);//gameboardwidth+10, 100);
+		ctx.fillText("Dark Brown's Turn", 10, gameboardheight+10);
 	} else {
-		//ctx.fillText("Light Brown's Turn", gameboardwidth+10, 100);
 		ctx.fillText("Light Brown's Turn", 10, gameboardheight+10);
 	}
-};
+
+	//ctx.fillText("Toggle Sound", gameboardwidth+10, 10);
+
+}
 
 function makeCells() {
 	for (var i=0; i<10; i++) {
