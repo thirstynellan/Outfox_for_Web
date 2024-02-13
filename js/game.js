@@ -34,7 +34,11 @@ unmuteButton.onload = function() {
 	imagesLoaded++;
 }
 unmuteButton.src = "unmute.png";
-
+var undoButton = new Image();
+undoButton.onload = function() {
+	imagesLoaded++;
+}
+undoButton.src = "undo.png";
 //document.body.appendChild(canvas);
 
 const grid = new Map();
@@ -71,14 +75,53 @@ function update(modifier) {
 	for (const chippy of chips) {
 		chippy.animate();
 	}
-};
+}
+
+function getChipAt(cel) {
+	for (const ch of chips) {
+		//alert("Looking for the chip at cell " + cel.x + "," + cel.y);
+		if (ch.areYouHere(cel)) {
+			//alert("found chip at cell " + cel.x + "," + cel.y);
+			return ch;
+		}
+	}
+	return null;//this should never happen
+}
+
+function submitMove(mv) {
+	undoStack.push(mv);
+	selected.setGoal(mv.dest);
+	selected.unselect();
+}
+
+function undoLastMove() {
+
+	if (selected != null) {
+		if (selected.isMoving()) {
+			//don't allow undo's while animating
+			return;
+		} else {
+			//un-highlight the selected chip before undo-ing
+			selected.unselect();
+			legalMoves.length = 0;
+		}
+	}
+
+	if (undoStack.length == 0) {
+		swal("No moves to undo!");
+	} else {
+		const move = undoStack.pop();
+		selected = getChipAt(move.dest);
+		selected.setGoal(move.src);
+		selected.unselect();
+	}
+}
 
 function onTouchEvent(x,y) {
 	var done = false;
 
 	if (x > gameboardwidth) {
 		if (y < cellsize) {
-			//alert("tapped volume button");
 			if (soundOn) {
 				soundOn = false;
 				audio.pause();
@@ -87,14 +130,16 @@ function onTouchEvent(x,y) {
 				audio.play();
 			}
 		} else if (y < 2*cellsize) {
-			alert("undo!");
+			undoLastMove();
 		}
 	}
 
 	for (const cell of legalMoves) {
 		if (cell.contains(x,y)) {
-			selected.setGoal(cell);
-			selected.unselect();
+			const move = new Move(selected.currentCell, cell);
+			submitMove(move);
+// 			selected.setGoal(cell);
+// 			selected.unselect();
 			done = true;
 			break;
 		}
@@ -128,7 +173,7 @@ function checkForWinner() {
 
 	var lightCount = 0;
 	var darkCount = 0;
-	for (var chippy of chips) {
+	for (const chippy of chips) {
 		if (chippy.isHome()) {
 			if (chippy.getColor() == LIGHT_BROWN) {
 				lightCount++;
@@ -137,7 +182,7 @@ function checkForWinner() {
 			}
 		}
 	}
-	if (lightCount == 1 || darkCount == 1) {
+	if (lightCount == 9 || darkCount == 9) {
 		const winner = (lightCount > darkCount) ? "Light Brown wins!" : "Dark Brown wins!";
 		showVictoryMessage(winner);
 	}
@@ -199,13 +244,18 @@ function render() {
 		cell.drawHighlight(ctx);
 	}
 
-	if (imagesLoaded > 1) {
+	if (imagesLoaded > 2) {
 		ctx.lineWidth = cellsize * 0.03;
-		ctx.drawImage(soundOn ? unmuteButton : muteButton, gameboardwidth+10, 10);
+		ctx.drawImage(soundOn ? unmuteButton : muteButton, gameboardwidth+5, 5, cellsize-10, cellsize-10);
+		ctx.drawImage(undoButton, gameboardwidth+5, cellsize+5, cellsize-10, cellsize-10);
 		ctx.beginPath();
 		ctx.roundRect(gameboardwidth+5, 5, cellsize-10, cellsize-10, 10);
+		ctx.roundRect(gameboardwidth+5, cellsize+5, cellsize-10, cellsize-10, 10);
 		ctx.closePath();
 		ctx.stroke();
+		//ctx.beginPath();
+		//ctx.closePath();
+		//ctx.stroke();
 	}
 
 	/*for (var i=0; i<10; i++) {
@@ -246,8 +296,8 @@ function makeCells() {
 function makeChips() {
 	var j=8;
 	for (var i=0; i<9; i++) {
-	var dark = null;
-	var light = null;
+		var dark = null;
+		var light = null;
 		if (j==4) {
 			dark = Chip.power(DARK_BROWN);
 			light = Chip.power(LIGHT_BROWN);
@@ -289,5 +339,5 @@ requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame
 // Let's play this game!
 var then = Date.now();
 init();
-//reset();
+
 main();

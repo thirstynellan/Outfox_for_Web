@@ -51,6 +51,11 @@ class Chip {
 		return this.right-this.left;
 	}
 
+    areYouHere(cel) {
+       	//alert("Looking for the chip at cell " + cel.x + "," + cel.y);
+        return (this.currentCell == cel);
+    }
+
 	setGoal(c) {
 		//alert("Goal! " + c.x + "," + c.y);
 		this.destination = c;
