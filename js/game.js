@@ -10,16 +10,15 @@ function index(x,y) {
 
 // Create the canvas
 //var canvas = document.createElement("canvas");
+let smaller = 0;
+let cellsize = 0;
+let gameboardwidth = 0;
+let gameboardheight =0;
+let dirty = true;
 var canvas = document.getElementById("gameboard");
 var ctx = canvas.getContext("2d");
-var smaller = Math.min(window.innerWidth, window.innerHeight);
-var cellsize = smaller/10;
-var gameboardwidth = cellsize*10;
-var gameboardheight = cellsize*9;
 var currentPlayer = (Math.random() < 0.5) ? LIGHT_BROWN : DARK_BROWN;
 var selected = null;
-canvas.width = cellsize*12;
-canvas.height = cellsize*10;
 var audio = new Audio('sneaky_snitch.ogg');
 audio.loop = true;
 var soundOn = false;
@@ -49,6 +48,23 @@ const undoStack = [];
 addEventListener("click", function(e) {
 	onTouchEvent(e.pageX, e.pageY);
 });
+
+function respondToResize() {
+	smaller = Math.min(window.innerWidth, window.innerHeight);
+	cellsize = smaller/10;
+	gameboardwidth = cellsize*10;
+	gameboardheight = cellsize*9;
+	canvas.width = cellsize*12;
+	canvas.height = cellsize*10;
+	for (var i=0; i<10; i++) {
+		for (var j=0; j<9; j++) {
+			grid.get(index(i,j)).resize(i,j,cellsize);
+		}
+	}
+	for (const chippy of chips) {
+		chippy.resize();
+	}
+}
 
 // Reset the game; put all the chips back
 function reset() {
@@ -200,6 +216,11 @@ function showVictoryMessage(msg) {
 // Draw everything
 function render() {
 
+	if (dirty) {
+		respondToResize();
+		dirty = false;
+	}
+
 	//blank out background
 	ctx.beginPath();
 	ctx.rect(0,0,canvas.width, canvas.height);
@@ -327,6 +348,12 @@ var main = function () {
 	render();
 
 	then = now;
+
+	//I think "ResizeObserver" is supposedly a better way of doing this,
+	//but I did not succeed at getting it to work.
+	if (smaller != Math.min(window.innerWidth, window.innerHeight)){
+		dirty = true;
+	}
 
 	// Request to do this again ASAP
 	requestAnimationFrame(main);

@@ -1,14 +1,18 @@
 // Create the Cell class
 class Cell {
 	constructor(xx, yy, t, cellSize) {
+		this.cellColor = t;
+		this.occupied = false;
+		this.resize(xx, yy, cellSize);
+	}
+
+	resize(xx, yy, cellSize) {
 		this.x = xx;
 		this.y = yy;
-		this.cellColor = t;
 		this.left = this.x * cellSize;
 		this.top = this.y * cellSize;
 		this.right = (this.x+1)*cellSize;
 		this.bottom = (this.y+1)*cellSize;
-		this.occupied = false;
 	}
 
 	//TODO delete this method when you don't need it anymore

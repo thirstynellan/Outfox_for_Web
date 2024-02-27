@@ -91,12 +91,20 @@ class Chip {
 		}
 		this.currentCell = c;
 		this.currentCell.setOccupied();
+// 		this.left = this.currentCell.left;
+// 		this.right = this.currentCell.right;
+// 		this.top = this.currentCell.top;
+// 		this.bottom = this.currentCell.bottom;
+		this.resize();
+		this.velocityX = 0;
+		this.velocityY = 0;
+	}
+
+	resize() {
 		this.left = this.currentCell.left;
 		this.right = this.currentCell.right;
 		this.top = this.currentCell.top;
 		this.bottom = this.currentCell.bottom;
-		this.velocityX = 0;
-		this.velocityY = 0;
 	}
 
 	draw(c) {
